@@ -16,12 +16,10 @@ const processData = (stringifiedData) => {
       const doubleInvertedCommaRegex = new RegExp(`"${oldId}"`, 'g');
       const stringifiedJsonRegex = new RegExp(`"${oldId}\\\\"`, 'g');
       const singleInvertedCommaRegex = new RegExp(`'${oldId}'`, 'g');
-      const noInvertedCommaRegex = new RegExp(oldId, 'g');
       
       stringifiedData = stringifiedData.replace(doubleInvertedCommaRegex, `"${newId}"`)
                               .replace(stringifiedJsonRegex, `"${newId}\\\"`)
-                              .replace(singleInvertedCommaRegex, `'${newId}'`)
-                              .replace(noInvertedCommaRegex, newId);
+                              .replace(singleInvertedCommaRegex, `'${newId}'`);
     }
   }
   return stringifiedData;
@@ -30,8 +28,12 @@ const processData = (stringifiedData) => {
 /**
  * platform-data.json
  */
-let stringifiedDemoData = readFileSync('.sirenData.json', 'utf-8');
+let stringifiedDemoData = readFileSync('platform-data.json', 'utf-8');
 stringifiedDemoData = processData(stringifiedDemoData);
+for (const [oldId, newId] of oldNewIdMap) {
+  const noInvertedCommaRegex = new RegExp(oldId, 'g');
+  stringifiedDemoData = stringifiedDemoData.replace(noInvertedCommaRegex, newId);
+}
 writeFileSync('platform-data-output.json', stringifiedDemoData);
 delete stringifiedDemoData;
 /**
@@ -41,27 +43,28 @@ delete stringifiedDemoData;
 /**
  * sirenaccess.json
  */
-let stringifiedSirenAccessData = readFileSync('.sirenAccess.json', 'utf-8');
+let stringifiedSirenAccessData = readFileSync('sirenaccess.json', 'utf-8');
+let stringOldNewMap = '';
 for (const [oldId, newId] of oldNewIdMap) {
   const sirenAccessRegex = new RegExp(`"metadata:${oldId}"`, 'g');
   stringifiedSirenAccessData = stringifiedSirenAccessData.replace(sirenAccessRegex, `"metadata:${newId}"`);
+  stringOldNewMap += `${oldId} => ${newId}\n`;
 }
 writeFileSync('sirenaccess-output.json', stringifiedSirenAccessData);
+writeFileSync('oldNewMap.txt', stringOldNewMap);
 delete stringifiedSirenAccessData;
+delete stringOldNewMap;
 /**
  * End of processing of sirenaccess.json
  */
 
  /**
-  * easy-start-data.json
+  * easy-start-data.json Requires only updating sidebaroptions object
   */
 let stringifiedEasyStartData = readFileSync('easy-start-data.json', 'utf-8');
-stringifiedEasyStartData = processData(stringifiedEasyStartData);
+stringifiedEasyStartData = stringifiedEasyStartData.replace(new RegExp(`"sidebaroptions:instance"`, 'g'), `"sidebaroptions:${uuid.v4()}"`);
 writeFileSync('easy-start-output.json', stringifiedEasyStartData);
 delete stringifiedEasyStartData;
 /**
  * End of processing of easy-start-data.json
  */
- 
-
-console.log(oldNewIdMap);
